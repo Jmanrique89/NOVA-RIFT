@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NovaRift — Propuesta de rediseño 2026-04-28</title>
+<style>
+  :root {
+    --bg-0: #06070d;
+    --bg-1: #0c1018;
+    --bg-2: #131826;
+    --line: rgba(255,255,255,0.06);
+    --line-strong: rgba(255,255,255,0.14);
+    --ink-0: #f4f6fb;
+    --ink-1: #c2c8d6;
+    --ink-2: #7a8194;
+    --ink-3: #4a5161;
+    --noxus: #E53935;
+    --demacia: #C8AA6E;
+    --zaun: #00FF88;
+    --ionia: #D81B60;
+    --accent: #C8AA6E;
+    --accent-soft: rgba(200,170,110,0.16);
+    --good: #4ade80;
+    --bad: #f87171;
+    --warn: #fbbf24;
+    --shadow: 0 24px 60px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--ink-0); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif; -webkit-font-smoothing: antialiased; }
+  body { min-height: 100vh; padding: 28px 16px 60px; background:
+      radial-gradient(900px 600px at 80% -10%, rgba(216,27,96,0.08), transparent 60%),
+      radial-gradient(700px 500px at 0% 120%, rgba(0,255,136,0.05), transparent 60%),
+      var(--bg-0);
+  }
+  .frame {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .doc-head {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 24px;
+  }
+  .kicker { font-size: 11px; letter-spacing: 0.18em; color: var(--ink-2); text-transform: uppercase; }
+  .doc-head h1 { font-size: 28px; margin: 0; font-weight: 800; letter-spacing: -0.01em; }
+  .doc-head p { color: var(--ink-1); margin: 6px 0 0; max-width: 720px; line-height: 1.5; font-size: 14px;}
+  .tabs {
+    display: flex; gap: 6px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 6px;
+    width: fit-content;
+    margin-bottom: 20px;
+  }
+  .tab {
+    appearance: none; border: 0;
+    background: transparent; color: var(--ink-1);
+    padding: 10px 16px; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
+    transition: all 180ms ease;
+  }
+  .tab small { display:block; font-size:10px; font-weight:500; color:var(--ink-3); margin-top:2px; letter-spacing:.12em; text-transform:uppercase;}
+  .tab.is-active { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px rgba(200,170,110,0.35); }
+  .tab.is-active small { color: rgba(200,170,110,0.7);}
+  .panel {
+    display: none;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+  }
+  .panel.is-active { display: block; animation: fadein 320ms ease both; }
+  @keyframes fadein { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform:none;} }
+
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 22px; }
+  .panel-head h2 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  .panel-head p { margin: 6px 0 0; color: var(--ink-1); font-size: 13px; max-width: 540px; line-height: 1.5; }
+  .pill { font-size: 11px; padding: 5px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+
+  /* ================== PANEL 1 — ROLE CONSTELLATION ================== */
+  .role-grid { display:grid; grid-template-columns: 1.15fr 1fr; gap: 24px; }
+  .const-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background:
+      radial-gradient(60% 60% at 50% 50%, rgba(200,170,110,0.10), transparent 70%),
+      radial-gradient(40% 40% at 50% 50%, rgba(216,27,96,0.08), transparent 70%),
+      linear-gradient(135deg, #0b0e18 0%, #060810 100%);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .const-wrap::before {
+    content:""; position:absolute; inset:0;
+    background-image:
+      radial-gradient(1px 1px at 14% 22%, rgba(255,255,255,0.4), transparent 60%),
+      radial-gradient(1px 1px at 76% 18%, rgba(255,255,255,0.3), transparent 60%),
+      radial-gradient(1px 1px at 22% 78%, rgba(255,255,255,0.35), transparent 60%),
+      radial-gradient(1px 1px at 86% 72%, rgba(255,255,255,0.25), transparent 60%),
+      radial-gradient(1px 1px at 50% 8%, rgba(255,255,255,0.5), transparent 60%),
+      radial-gradient(1px 1px at 8% 50%, rgba(255,255,255,0.3), transparent 60%);
+    opacity:.7;
+  }
+  .const-wrap svg { display:block; width:100%; height:100%; position:relative; z-index:1;}
+  .const-core { transform-origin: center; transform-box: fill-box; animation: corePulse 2.4s ease-in-out infinite;}
+  @keyframes corePulse {
+    0%,100% { filter: drop-shadow(0 0 14px rgba(200,170,110,0.5)); }
+    50%     { filter: drop-shadow(0 0 24px rgba(200,170,110,0.85)); }
+  }
+  .const-orbit { fill:none; stroke:rgba(200,170,110,0.18); stroke-width:1; stroke-dasharray: 2 6; }
+  .const-link {
+    fill:none; stroke:rgba(200,170,110,0.35); stroke-width: 1.2;
+    stroke-dasharray: 4 6;
+    animation: linkFlow 6s linear infinite;
+  }
+  @keyframes linkFlow { from { stroke-dashoffset: 0;} to { stroke-dashoffset: -100;} }
+  .const-link.dim { stroke: rgba(255,255,255,0.07);}
+  .const-node {
+    cursor: pointer;
+    transition: transform 280ms cubic-bezier(.2,.7,.2,1), opacity 280ms ease, filter 280ms ease;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  .const-node:hover { transform: scale(1.18); filter: drop-shadow(0 0 18px var(--accent)); }
+  .const-node.is-selected {
+    filter: drop-shadow(0 0 26px var(--accent));
+  }
+  .const-node.is-dimmed { opacity: 0.32; }
+  .node-disc { fill: #0c1018; stroke: rgba(200,170,110,0.55); stroke-width: 1.4; }
+  .const-node.is-selected .node-disc { stroke: var(--accent); stroke-width: 2; }
+  .node-icon { stroke: var(--accent); stroke-width: 1.6; fill:none; stroke-linecap: round; stroke-linejoin: round;}
+  .const-node.is-selected .node-icon { stroke: #fff;}
+  .node-label {
+    font-family: inherit; font-weight: 800; font-size: 9.5px; letter-spacing: .22em;
+    text-anchor: middle; pointer-events: none;
+    fill: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+  .const-node.is-selected .node-label { fill: var(--accent);}
+  .const-core-label {
+    font-family: inherit; font-weight: 900; font-size: 10px; letter-spacing: .26em;
+    text-anchor: middle; pointer-events: none;
+    fill: var(--accent);
+    text-transform: uppercase;
+  }
+  .role-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+    display:flex; flex-direction: column;
+    min-height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  .role-card::before {
+    content:""; position:absolute; inset:-1px; border-radius:18px; pointer-events:none;
+    background: linear-gradient(180deg, transparent 60%, color-mix(in oklab, var(--accent) 30%, transparent));
+    opacity:.45;
+  }
+  .role-splash {
+    height: 220px; border-radius: 14px; background-size: cover; background-position: center top;
+    border: 1px solid var(--line-strong);
+    margin-bottom: 16px; position: relative; overflow:hidden;
+    transition: background-image 360ms ease;
+  }
+  .role-splash::after {
+    content:""; position:absolute; inset:0;
+    background: linear-gradient(180deg, transparent 30%, rgba(6,7,13,0.85) 100%);
+  }
+  .role-name { font-size: 22px; font-weight: 800; letter-spacing: 0.02em; margin: 0 0 4px; }
+  .role-tag { font-size: 11px; color: var(--accent); letter-spacing: .2em; text-transform: uppercase; margin: 0 0 14px; font-weight: 700; }
+  .stat-row { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; }
+  .stat-cell { background: rgba(255,255,255,0.03); border:1px solid var(--line); border-radius: 12px; padding: 10px; }
+  .stat-cell label { display:block; color: var(--ink-2); font-size: 10px; letter-spacing:.16em; text-transform: uppercase; margin-bottom: 4px;}
+  .stat-cell strong { font-size: 16px; font-weight: 800; color: var(--ink-0);}
+  .stat-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 6px; overflow:hidden;}
+  .stat-bar i { display:block; height: 100%; background: var(--accent); border-radius:2px; }
+  .quiz-btn {
+    margin-top: 14px;
+    appearance:none; border:1px solid var(--line-strong);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    color: var(--ink-0); padding: 12px 16px; border-radius: 12px; cursor: pointer;
+    font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    transition: all 180ms ease;
+  }
+  .quiz-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .quiz-banner {
+    margin-top: 10px;
+    background: linear-gradient(90deg, rgba(200,170,110,0.10), transparent);
+    border: 1px solid rgba(200,170,110,0.18);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: var(--ink-1);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .quiz-banner b { color: var(--accent);}
+
+  /* ================== PANEL 2 — CHAMPION POOL ================== */
+  .pool-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; }
+  .pool-section h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; }
+  .pool-section p.lead { margin: 0 0 14px; font-size: 12px; color: var(--ink-2); }
+  .pool-tier { display: flex; gap: 12px; margin-bottom: 14px; }
+  .pool-slot {
+    flex:1;
+    aspect-ratio: 3/4;
+    border: 1px dashed var(--line-strong);
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.2)),
+      var(--bg-2);
+    background-size: cover; background-position: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 220ms ease, border-color 220ms ease;
+  }
+  .pool-slot:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .pool-slot.is-filled { border-style: solid; border-color: var(--accent); }
+  .pool-slot.is-locked { cursor: not-allowed; border-color: rgba(255,255,255,0.05); background: var(--bg-2); }
+  .pool-slot.is-locked:hover { transform: none; }
+  .slot-empty {
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color: var(--ink-2); font-size: 11px; letter-spacing:.16em; text-transform: uppercase; font-weight:700; gap: 8px;
+  }
+  .slot-empty .ring { width:38px; height:38px; border-radius:50%; border:1.5px dashed var(--line-strong); display:flex; align-items:center; justify-content:center; color: var(--ink-3); font-size: 16px; font-weight: 800;}
+  .slot-locked .ring { border-color: rgba(255,255,255,0.06); color: var(--ink-3);}
+  .slot-locked small { color: var(--ink-3); font-size: 9px; letter-spacing:.14em;}
+  .slot-cap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.85));
+    padding: 10px 12px;
+    color: white;
+  }
+  .slot-cap .cap-name { font-weight:800; font-size: 13px; letter-spacing:.02em;}
+  .slot-cap .cap-meta { font-size: 10px; color: var(--ink-1); letter-spacing:.14em; text-transform: uppercase; margin-top:2px;}
+  .pool-mastery {
+    position:absolute; top:8px; left:8px;
+    background: rgba(0,0,0,0.65);
+    border:1px solid rgba(200,170,110,0.5);
+    color: var(--accent);
+    font-size: 9px; padding: 3px 7px; border-radius: 6px; letter-spacing:.16em; font-weight:800;
+  }
+  .pool-rules {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .pool-rules h4 { margin: 0 0 8px; font-size: 12px; letter-spacing:.18em; color: var(--accent); text-transform: uppercase;}
+  .pool-rules ul { list-style: none; padding: 0; margin: 0; display:flex; flex-direction:column; gap: 8px; }
+  .pool-rules li { display:flex; align-items:flex-start; gap: 10px; font-size: 13px; line-height: 1.5; color: var(--ink-1);}
+  .pool-rules li::before { content:""; flex-shrink:0; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 7px;}
+  .level-progress { margin-top: 16px; padding: 14px; background: var(--bg-2); border:1px solid var(--line); border-radius: 14px; }
+  .level-progress .lp-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--ink-1); margin-bottom: 8px;}
+  .level-progress .lp-head b { font-size: 18px; color: var(--ink-0);}
+  .level-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden;}
+  .level-bar i { display: block; height: 100%; background: linear-gradient(90deg, #C8AA6E, #f1d590); border-radius:4px;}
+  .level-marks { display:flex; justify-content:space-between; margin-top:10px; }
+  .level-mark { font-size: 10px; letter-spacing:.16em; text-transform: uppercase; color: var(--ink-3); display: flex; flex-direction:column; align-items:center; gap:3px;}
+  .level-mark.is-passed { color: var(--accent);}
+  .level-mark .dot { width: 8px; height: 8px; border-radius:50%; background: rgba(255,255,255,0.1);}
+  .level-mark.is-passed .dot { background: var(--accent);}
+
+  /* ================== PANEL 3 — HUB OP.GG ================== */
+  .hub-toggle {
+    display: inline-flex; gap: 4px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px;
+    margin-bottom: 18px;
+  }
+  .hub-toggle button { appearance:none; border:0; background:transparent; color: var(--ink-1); padding: 8px 16px; border-radius:999px; font-size: 12px; font-weight: 700; cursor:pointer; letter-spacing:.06em;}
+  .hub-toggle button.is-active { background: var(--accent); color: #1a1305; }
+  .hub-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 16px; }
+  .hub-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .hub-card h4 { margin: 0 0 10px; font-size: 11px; letter-spacing: .2em; color: var(--ink-2); text-transform: uppercase; font-weight: 800; }
+
+  .hero-card {
+    grid-column: 1 / -1;
+    display:grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items:center;
+    background:
+      radial-gradient(380px 200px at 100% 0%, rgba(216,27,96,0.18), transparent 60%),
+      linear-gradient(135deg, rgba(200,170,110,0.10), rgba(0,0,0,0));
+    border: 1px solid rgba(200,170,110,0.18);
+  }
+  .hero-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background:
+      conic-gradient(from 0deg, #C8AA6E, #f1d590, #C8AA6E);
+    padding: 3px;
+  }
+  .hero-avatar > span {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    background: var(--bg-1); border-radius: 50%;
+    font-weight: 900; font-size: 26px; color: var(--accent);
+  }
+  .hero-meta .name { font-size: 22px; font-weight: 800; letter-spacing: -0.01em;}
+  .hero-meta .tag { font-size: 12px; color: var(--ink-2); margin-top: 2px;}
+  .hero-meta .badges { display:flex; gap: 6px; margin-top: 8px; }
+  .hero-meta .badge { font-size: 10px; padding: 4px 9px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--ink-1); letter-spacing: .12em; font-weight:700; text-transform: uppercase;}
+  .hero-meta .badge.faction-d { color: var(--demacia); border-color: rgba(200,170,110,0.4);}
+  .hero-stats { display:flex; gap: 22px; align-items:center; }
+  .hero-stat { text-align:right;}
+  .hero-stat label { font-size: 10px; letter-spacing:.18em; color: var(--ink-3); text-transform: uppercase; font-weight: 700; display:block;}
+  .hero-stat strong { font-size: 26px; font-weight: 900; color: var(--ink-0); display:block;}
+  .hero-stat strong.good { color: var(--good);}
+  .hero-stat strong.bad { color: var(--bad);}
+
+  .radar { display:flex; align-items:center; justify-content:center; }
+  .radar svg { width: 100%; max-width: 320px; height: auto; }
+  .radar-grid { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 1; }
+  .radar-poly { fill: rgba(200,170,110,0.18); stroke: var(--accent); stroke-width: 2; }
+  .radar-axis { stroke: rgba(255,255,255,0.05); stroke-width: 1;}
+  .radar-label { fill: var(--ink-1); font-size: 10px; letter-spacing: .14em; font-weight: 700; text-anchor: middle;}
+
+  .matches { display:flex; flex-direction: column; gap: 6px;}
+  .match-row {
+    display:grid; grid-template-columns: 6px 38px 1fr auto auto; gap: 12px; align-items:center;
+    padding: 10px 12px; border-radius: 12px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+  }
+  .match-row .res { width: 6px; height: 36px; border-radius: 3px;}
+  .match-row.win .res { background: var(--good);}
+  .match-row.loss .res { background: var(--bad);}
+  .match-row .champ { width: 38px; height: 38px; border-radius: 8px; background-size: cover; background-position: center; border:1px solid var(--line-strong);}
+  .match-row .meta .champ-name { font-weight:700; font-size: 13px;}
+  .match-row .meta .champ-mode { font-size: 11px; color: var(--ink-2);}
+  .match-row .kda { font-weight: 800; font-size: 13px; }
+  .match-row .kda small { display:block; font-size: 10px; color: var(--ink-2); font-weight:600;}
+  .match-row .when { font-size: 10px; color: var(--ink-3); letter-spacing: .12em; text-transform: uppercase; font-weight:600; text-align:right;}
+
+  .insights { display:flex; flex-direction: column; gap: 10px; }
+  .insight {
+    background: linear-gradient(90deg, rgba(200,170,110,0.08), rgba(200,170,110,0.0));
+    border: 1px solid rgba(200,170,110,0.18);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display:flex; gap: 12px; align-items: flex-start;
+  }
+  .insight .icon { font-size: 16px; flex-shrink: 0; color: var(--accent);}
+  .insight .text { font-size: 13px; line-height: 1.5; color: var(--ink-0);}
+  .insight .text small { display: block; font-size: 11px; color: var(--ink-2); margin-top: 2px;}
+  .insight.warn { background: linear-gradient(90deg, rgba(248,113,113,0.10), rgba(248,113,113,0));border-color: rgba(248,113,113,0.18);}
+  .insight.warn .icon { color: var(--bad);}
+
+  .legend {
+    margin-top: 18px;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--line-strong);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 12px; color: var(--ink-2); line-height: 1.55;
+  }
+  .legend b { color: var(--ink-0);}
+
+  @media (max-width: 920px) {
+    .role-grid, .pool-grid, .hub-grid { grid-template-columns: 1fr; }
+    .hero-card { grid-template-columns: auto 1fr; }
+    .hero-stats { grid-column: 1 / -1; justify-content: space-between; margin-top: 10px;}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="doc-head">
+    <div class="kicker">Nova Rift · Propuesta de rediseño · 2026-04-28</div>
+    <h1>Tres pantallas que el flujo necesita</h1>
+    <p>Mockup interactivo. Pasa por las tres pestañas para ver el selector de rol con mapa táctico, el champion pool con sistema de slots y el hub estilo op.gg con tres modos. Las decisiones de diseño respetan la paleta y los acuerdos cerrados en coordinación; lo que cambia es la jerarquía visual y el flujo.</p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab is-active" data-tab="role">1 · Selector de rol<small>Mapa táctico + carta</small></button>
+    <button class="tab" data-tab="pool">2 · Champion pool<small>2+2 con desbloqueos</small></button>
+    <button class="tab" data-tab="hub">3 · Hub estilo op.gg<small>Tres modos en un toggle</small></button>
+  </div>
+
+  <!-- =================== PANEL 1 =================== -->
+  <section class="panel is-active" data-panel="role">
+    <div class="panel-head">
+      <div>
+        <h2>Selector de rol — constelación orbital</h2>
+        <p>Adiós al mapa plano. Cinco nodos orbitan el emblema de tu facción, cada uno con su icono vectorial propio (sin emojis). Hover ilumina; selección absorbe el nodo al núcleo y los demás se atenúan. El test de 4 preguntas es opcional y propone primario+secundario, pero siempre puedes elegir manual.</p>
+      </div>
+      <span class="pill">Reemplaza RoleQuiz modal</span>
+    </div>
+    <div class="role-grid">
+      <div class="const-wrap">
+        <svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg" aria-label="Constelación de selección de rol">
+          <!-- orbit -->
+          <circle class="const-orbit" cx="180" cy="180" r="130"/>
+          <!-- links from core to nodes (5 links) -->
+          <g id="const-links">
+            <line class="const-link" x1="180" y1="180" x2="180" y2="50" data-link="MID"/>
+            <line class="const-link" x1="180" y1="180" x2="304" y2="140" data-link="ADC"/>
+            <line class="const-link" x1="180" y1="180" x2="256" y2="287" data-link="SUPPORT"/>
+            <line class="const-link" x1="180" y1="180" x2="104" y2="287" data-link="JUNGLE"/>
+            <line class="const-link" x1="180" y1="180" x2="56"  y2="140" data-link="TOP"/>
+          </g>
+          <!-- core (faction emblem placeholder) -->
+          <g class="const-core">
+            <circle cx="180" cy="180" r="42" fill="#0a0d18" stroke="rgba(200,170,110,0.6)" stroke-width="1.4"/>
+            <circle cx="180" cy="180" r="30" fill="none" stroke="rgba(200,170,110,0.35)" stroke-width="1"/>
+            <!-- crown emblem (Demacia stylised) -->
+            <path d="M 162 188 L 168 170 L 174 184 L 180 168 L 186 184 L 192 170 L 198 188 Z"
+                  fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round"/>
+            <text class="const-core-label" x="180" y="207">DEMACIA</text>
+          </g>
+
+          <!-- TOP node (top-left, x=56 y=140) — sword -->
+          <g class="const-node" data-role="TOP" data-champ="Fiora" data-tag="Splitpush · Carry tardío" data-cc="22%" data-dmg="AD" data-impact="20+" transform="translate(56 140)">
+            <circle class="node-disc" cx="0" cy="0" r="26"/>
+            <g class="node-icon" transform="translate(-11 -11)">
+              <!-- sword icon -->
+              <line x1="14" y1="2" x2="14" y2="16"/>
+              <line x1="9" y1="16" x2="19" y2="16"/>
+              <line x1="14" y1="16" x2="14" y2="22"/>
+            </g>
+            <text class="node-label" x="0" y="42">TOP</text>
+          </g>
+
+          <!-- JUNGLE node (bottom-left, x=104 y=287) — paw -->
+          <g class="const-node" data-role="JUNGLE" data-champ="LeeSin" data-tag="Tempo · Ganks tempranos" data-cc="34%" data-dmg="AD" data-impact="6-14" transform="translate(104 287)">
+            <circle class="node-disc" cx="0" cy="0" r="26"/>
+            <g class="node-icon" transform="translate(-11 -11)">
+              <!-- paw icon -->
+              <ellipse cx="11" cy="15" rx="6" ry="4.5"/>
+              <circle cx="6" cy="7" r="2"/>
+              <circle cx="11" cy="5" r="2"/>
+              <circle cx="16" cy="7" r="2"/>
+              <circle cx="3.5" cy="11.5" r="1.5"/>
+              <circle cx="18.5" cy="11.5" r="1.5"/>
+            </g>
+            <text class="node-label" x="0" y="42">JNG</text>
+          </g>
+
+          <!-- MID node (top center, x=180 y=50) — staff/spell -->
+          <g class="const-node is-selected" data-role="MID" data-champ="Ahri" data-tag="Roam · Pick agresivo" data-cc="48%" data-dmg="AP" data-impact="6-25" transform="translate(180 50)">
+            <circle class="node-disc" cx="0" cy="0" r="26"/>
+            <g class="node-icon" transform="translate(-11 -11)">
+              <!-- mage staff with orb -->
+              <line x1="6" y1="20" x2="16" y2="6"/>
+              <circle cx="17" cy="5" r="3"/>
+              <line x1="13" y1="9" x2="9" y2="9" />
+            </g>
+            <text class="node-label" x="0" y="42">MID</text>
+          </g>
+
+          <!-- ADC node (top-right, x=304 y=140) — bow -->
+          <g class="const-node" data-role="ADC" data-champ="Jinx" data-tag="Hyper-carry · Late game" data-cc="6%" data-dmg="AD" data-impact="22+" transform="translate(304 140)">
+            <circle class="node-disc" cx="0" cy="0" r="26"/>
+            <g class="node-icon" transform="translate(-11 -11)">
+              <!-- bow icon -->
+              <path d="M5 4 Q 18 11 5 18"/>
+              <line x1="5" y1="4" x2="5" y2="18"/>
+              <line x1="6" y1="11" x2="20" y2="11"/>
+              <polyline points="17,8 20,11 17,14"/>
+            </g>
+            <text class="node-label" x="0" y="42">ADC</text>
+          </g>
+
+          <!-- SUPPORT node (bottom-right, x=256 y=287) — shield -->
+          <g class="const-node" data-role="SUPPORT" data-champ="Thresh" data-tag="Engage · Peel" data-cc="62%" data-dmg="MIX" data-impact="2-12" transform="translate(256 287)">
+            <circle class="node-disc" cx="0" cy="0" r="26"/>
+            <g class="node-icon" transform="translate(-11 -11)">
+              <!-- shield icon -->
+              <path d="M11 3 L19 6 L19 12 Q 19 18 11 21 Q 3 18 3 12 L3 6 Z"/>
+              <line x1="11" y1="9" x2="11" y2="15"/>
+              <line x1="8" y1="12" x2="14" y2="12"/>
+            </g>
+            <text class="node-label" x="0" y="42">SUP</text>
+          </g>
+        </svg>
+      </div>
+      <div class="role-card">
+        <div class="role-splash" id="roleSplash" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg')"></div>
+        <h3 class="role-name" id="roleName">MID — AHRI</h3>
+        <div class="role-tag" id="roleTag">Roam · Pick agresivo</div>
+        <div class="stat-row">
+          <div class="stat-cell"><label>CC %</label><strong id="statCc">48%</strong><div class="stat-bar"><i id="barCc" style="width:48%"></i></div></div>
+          <div class="stat-cell"><label>DMG</label><strong id="statDmg">AP</strong><div class="stat-bar"><i id="barDmg" style="width:80%; background:#d81b60;"></i></div></div>
+          <div class="stat-cell"><label>Impacto</label><strong id="statImpact">6-25′</strong><div class="stat-bar"><i id="barImp" style="width:65%"></i></div></div>
+        </div>
+        <button class="quiz-btn" id="quizBtn">¿No sabes qué rol jugar? · Test de 4 preguntas</button>
+        <div class="quiz-banner" id="quizBanner" style="display:none;">
+          <b>Recomendación del test:</b> tu perfil "Tactical · Pick" encaja con <b>MID</b> primario y <b>SUPPORT</b> secundario. Puedes aceptar o ignorar.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== PANEL 2 =================== -->
+  <section class="panel" data-panel="pool">
+    <div class="panel-head">
+      <div>
+        <h2>Champion pool — 2 main + 2 secundarios + desbloqueos</h2>
+        <p>El pool inicial es ajustado a propósito. Tu nivel NovaRift desbloquea slots; tu mastery de Riot puede regalarte uno extra del mismo tier. Lo que juegues fuera del pool se separa en "Off-Pool" y no contamina tus stats principales.</p>
+      </div>
+      <span class="pill">Sustituye ChampionPick lineal</span>
+    </div>
+    <div class="pool-grid">
+      <div class="pool-section">
+        <h3>Main pool · MID</h3>
+        <p class="lead">Estos campeones definen tu KDA y winrate principal en NovaRift.</p>
+        <div class="pool-tier">
+          <div class="pool-slot is-filled" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg')">
+            <div class="pool-mastery">M7</div>
+            <div class="slot-cap"><div class="cap-name">Ahri</div><div class="cap-meta">Main · 124 partidas</div></div>
+          </div>
+          <div class="pool-slot is-filled" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Akali_0.jpg')">
+            <div class="pool-mastery">M5</div>
+            <div class="slot-cap"><div class="cap-name">Akali</div><div class="cap-meta">Main · 47 partidas</div></div>
+          </div>
+          <div class="pool-slot is-locked">
+            <div class="slot-empty slot-locked">
+              <div class="ring">🔒</div>
+              <small>Nivel 10</small>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:14px;">Secundarios · MID</h3>
+        <p class="lead">Counter-picks o flex. Cuentan en stats con peso menor.</p>
+        <div class="pool-tier">
+          <div class="pool-slot is-filled" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Vladimir_0.jpg')">
+            <div class="slot-cap"><div class="cap-name">Vladimir</div><div class="cap-meta">Sec · vs assassins</div></div>
+          </div>
+          <div class="pool-slot">
+            <div class="slot-empty"><div class="ring">+</div><small>Elegir secundario</small></div>
+          </div>
+          <div class="pool-slot is-locked">
+            <div class="slot-empty slot-locked">
+              <div class="ring">🔒</div>
+              <small>Nivel 5</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pool-section">
+        <div class="pool-rules">
+          <h4>Cómo funciona el pool</h4>
+          <ul>
+            <li><b>Inicio</b>: 2 slots de main + 2 secundarios. Vamos a aprender de ti antes de regalar más slots.</li>
+            <li><b>Nivel NovaRift</b>: jugando partidas con el pool ganas XP. Nv5 abre +1 secundario, Nv10 abre +1 main, Nv15 sube el cap a 3M+4S.</li>
+            <li><b>Bonus por mastery</b>: si Riot detecta mastery 6 o 7 en un campeón del pool, te regalamos un slot extra del mismo tier. Premia profundidad real.</li>
+            <li><b>Off-pool penalty</b>: las partidas fuera del pool se separan en "Off-Pool" y no entran al cálculo de KDA principal. No te castiga jugar otra cosa, solo no contamina tu coaching.</li>
+            <li><b>Sugerencia automática</b>: al fijar un main, te proponemos su counter típico como secundario. Lo puedes ignorar.</li>
+          </ul>
+          <div class="level-progress">
+            <div class="lp-head"><span>Nivel NovaRift</span><b>3 / 15</b></div>
+            <div class="level-bar"><i style="width:18%"></i></div>
+            <div class="level-marks">
+              <div class="level-mark is-passed"><div class="dot"></div>1 · Inicio</div>
+              <div class="level-mark"><div class="dot"></div>5 · +1 sec</div>
+              <div class="level-mark"><div class="dot"></div>10 · +1 main</div>
+              <div class="level-mark"><div class="dot"></div>15 · 3M+4S</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== PANEL 3 =================== -->
+  <section class="panel" data-panel="hub">
+    <div class="panel-head">
+      <div>
+        <h2>Hub out-of-game — tres modos en un toggle</h2>
+        <p>Lo que ves cuando no estás en partida. Toggle horizontal arriba para alternar entre Perfil global, solo Champ Pool y Off-Pool. La diferencia frente a op.gg está en el bloque "Insights del motor táctico", que convierte los datos del backend en frases accionables.</p>
+      </div>
+      <span class="pill">Reemplaza ProfileScreen</span>
+    </div>
+
+    <div class="hub-toggle" id="hubToggle">
+      <button class="is-active" data-mode="all">Perfil — todos</button>
+      <button data-mode="pool">Champ Pool</button>
+      <button data-mode="off">Off-Pool</button>
+    </div>
+
+    <div class="hub-grid">
+      <div class="hub-card hero-card">
+        <div class="hero-avatar"><span>J</span></div>
+        <div class="hero-meta">
+          <div class="name" id="hubName">Jorge#NRT</div>
+          <div class="tag">EUW · Demacia · Mid main</div>
+          <div class="badges">
+            <span class="badge faction-d">DEMACIA</span>
+            <span class="badge">EMERALD II</span>
+            <span class="badge" id="hubScope">Modo: Todos</span>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><label>Winrate</label><strong class="good" id="hubWr">57%</strong></div>
+          <div class="hero-stat"><label>KDA</label><strong id="hubKda">3.41</strong></div>
+          <div class="hero-stat"><label>Partidas</label><strong id="hubGames">186</strong></div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <h4>Radar de rendimiento — 6 ejes</h4>
+        <div class="radar">
+          <svg viewBox="0 0 320 280" id="radarSvg">
+            <g transform="translate(160 145)">
+              <polygon class="radar-grid" points="0,-110 95,-55 95,55 0,110 -95,55 -95,-55"/>
+              <polygon class="radar-grid" points="0,-80 70,-40 70,40 0,80 -70,40 -70,-40"/>
+              <polygon class="radar-grid" points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25"/>
+              <line class="radar-axis" x1="0" y1="0" x2="0" y2="-110"/>
+              <line class="radar-axis" x1="0" y1="0" x2="95" y2="-55"/>
+              <line class="radar-axis" x1="0" y1="0" x2="95" y2="55"/>
+              <line class="radar-axis" x1="0" y1="0" x2="0" y2="110"/>
+              <line class="radar-axis" x1="0" y1="0" x2="-95" y2="55"/>
+              <line class="radar-axis" x1="0" y1="0" x2="-95" y2="-55"/>
+              <polygon class="radar-poly" id="radarPoly" points="0,-90 80,-44 60,38 0,72 -80,40 -55,-30"/>
+              <text class="radar-label" x="0" y="-122">DMG</text>
+              <text class="radar-label" x="115" y="-58">GOLD</text>
+              <text class="radar-label" x="115" y="68">VISIÓN</text>
+              <text class="radar-label" x="0" y="128">CC</text>
+              <text class="radar-label" x="-115" y="68">OBJ</text>
+              <text class="radar-label" x="-115" y="-58">SURVIVAL</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <h4>Últimas partidas</h4>
+        <div class="matches" id="matchList">
+          <div class="match-row win">
+            <div class="res"></div>
+            <div class="champ" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg')"></div>
+            <div class="meta"><div class="champ-name">Ahri</div><div class="champ-mode">Solo/Duo · 28:12</div></div>
+            <div class="kda">11/3/9<small>5.0 KDA</small></div>
+            <div class="when">Hoy</div>
+          </div>
+          <div class="match-row loss">
+            <div class="res"></div>
+            <div class="champ" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Akali_0.jpg')"></div>
+            <div class="meta"><div class="champ-name">Akali</div><div class="champ-mode">Solo/Duo · 32:48</div></div>
+            <div class="kda">5/9/4<small>0.9 KDA</small></div>
+            <div class="when">Hoy</div>
+          </div>
+          <div class="match-row win">
+            <div class="res"></div>
+            <div class="champ" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Vladimir_0.jpg')"></div>
+            <div class="meta"><div class="champ-name">Vladimir</div><div class="champ-mode">Flex · 26:01</div></div>
+            <div class="kda">8/2/6<small>7.0 KDA</small></div>
+            <div class="when">Ayer</div>
+          </div>
+          <div class="match-row loss off-row" style="display:none;">
+            <div class="res"></div>
+            <div class="champ" style="background-image:url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yasuo_0.jpg')"></div>
+            <div class="meta"><div class="champ-name">Yasuo (off-pool)</div><div class="champ-mode">Solo/Duo · 22:14</div></div>
+            <div class="kda">2/8/3<small>0.6 KDA</small></div>
+            <div class="when">Ayer</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hub-card">
+        <h4>Insights del motor táctico</h4>
+        <div class="insights" id="insightsList">
+          <div class="insight">
+            <div class="icon">▲</div>
+            <div class="text">Tu winrate sube <b>+12%</b> cuando construyes <b>Mercury Treads</b> contra comps con ≥3 fuentes de CC.<small>Última semana · 14 partidas analizadas</small></div>
+          </div>
+          <div class="insight warn">
+            <div class="icon">▼</div>
+            <div class="text">Caes a <b>41%</b> winrate cuando juegas Akali contra Galio o Lissandra.<small>El motor sugiere swap a Vladimir como secundario.</small></div>
+          </div>
+          <div class="insight">
+            <div class="icon">●</div>
+            <div class="text">Tu damage profile es <b>AP-heavy</b>. Recordamos a tu top que abra los matchups con counter-pick en <b>AD</b> para forzar comp mixta.<small>Threat assessment del backend · regla 12-AP-HEAVY</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <b>Datos:</b> el modo "Perfil" agrega todas tus partidas, el modo "Champ Pool" filtra por los 4 campeones de tu pool y el modo "Off-Pool" muestra el sangrado de winrate cuando juegas fuera del pool. El bloque <b>Insights</b> tira del endpoint <code>/api/v1/live/start</code> + un nuevo <code>/api/v1/stats/{riotId}</code> y traduce <code>recommendationItems[]</code> y <code>threatAssessment{}</code> a frases accionables. Es la única ventaja real frente a op.gg, así que es donde concentramos polish.
+    </div>
+  </section>
+</div>
+
+<script>
+  // ----- Tabs -----
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('is-active'));
+    panels.forEach(x => x.classList.remove('is-active'));
+    t.classList.add('is-active');
+    document.querySelector('.panel[data-panel="' + t.dataset.tab + '"]').classList.add('is-active');
+  }));
+
+  // ----- Role hover/select (constellation) -----
+  const splashEl = document.getElementById('roleSplash');
+  const nameEl = document.getElementById('roleName');
+  const tagEl = document.getElementById('roleTag');
+  const ccEl = document.getElementById('statCc');
+  const dmgEl = document.getElementById('statDmg');
+  const impEl = document.getElementById('statImpact');
+  const barCc = document.getElementById('barCc');
+  const barDmg = document.getElementById('barDmg');
+  const barImp = document.getElementById('barImp');
+
+  const dmgColor = { AD:'#fbbf24', AP:'#d81b60', MIX:'#7c8aff' };
+  const impMap = { '20+':'90%', '6-14':'45%', '6-25':'70%', '22+':'95%', '2-12':'30%' };
+
+  function applyRole(node){
+    const role = node.dataset.role;
+    const champ = node.dataset.champ;
+    splashEl.style.backgroundImage = `url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ}_0.jpg')`;
+    nameEl.textContent = `${role} — ${champ.toUpperCase()}`;
+    tagEl.textContent = node.dataset.tag;
+    ccEl.textContent = node.dataset.cc;
+    dmgEl.textContent = node.dataset.dmg;
+    impEl.textContent = node.dataset.impact + '′';
+    barCc.style.width = node.dataset.cc;
+    barDmg.style.background = dmgColor[node.dataset.dmg] || '#C8AA6E';
+    barImp.style.width = impMap[node.dataset.impact] || '60%';
+  }
+  function dimOthers(activeRole){
+    document.querySelectorAll('.const-node').forEach(n => {
+      if (!activeRole || n.dataset.role === activeRole) n.classList.remove('is-dimmed');
+      else n.classList.add('is-dimmed');
+    });
+    document.querySelectorAll('#const-links line').forEach(l => {
+      if (!activeRole || l.dataset.link === activeRole) l.classList.remove('dim');
+      else l.classList.add('dim');
+    });
+  }
+  document.querySelectorAll('.const-node').forEach(n => {
+    n.addEventListener('mouseenter', () => { applyRole(n); dimOthers(n.dataset.role); });
+    n.addEventListener('mouseleave', () => {
+      const sel = document.querySelector('.const-node.is-selected');
+      dimOthers(sel ? sel.dataset.role : null);
+      if (sel) applyRole(sel);
+    });
+    n.addEventListener('click', () => {
+      document.querySelectorAll('.const-node').forEach(x => x.classList.remove('is-selected'));
+      n.classList.add('is-selected');
+      dimOthers(n.dataset.role);
+      applyRole(n);
+    });
+  });
+  // initial state: MID selected, others dimmed slightly
+  dimOthers('MID');
+  document.getElementById('quizBtn').addEventListener('click', () => {
+    const banner = document.getElementById('quizBanner');
+    banner.style.display = banner.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // ----- Hub toggle -----
+  const hubToggle = document.getElementById('hubToggle');
+  const hubScope = document.getElementById('hubScope');
+  const hubWr = document.getElementById('hubWr');
+  const hubKda = document.getElementById('hubKda');
+  const hubGames = document.getElementById('hubGames');
+  const radarPoly = document.getElementById('radarPoly');
+  const insightsList = document.getElementById('insightsList');
+  const matchList = document.getElementById('matchList');
+
+  const modeData = {
+    all:  { label:'Modo: Todos',     wr:'57%', wrCls:'good', kda:'3.41', games:'186', poly:'0,-90 80,-44 60,38 0,72 -80,40 -55,-30' },
+    pool: { label:'Modo: Champ Pool',wr:'63%', wrCls:'good', kda:'4.18', games:'132', poly:'0,-100 90,-50 75,46 0,90 -85,48 -65,-38' },
+    off:  { label:'Modo: Off-Pool',  wr:'38%', wrCls:'bad',  kda:'1.92', games:'54',  poly:'0,-50 38,-22 28,18 0,38 -42,20 -32,-14' },
+  };
+  const insights = {
+    all: [
+      ['▲','good','Tu winrate sube <b>+12%</b> con Mercury Treads contra comps ≥3 CC.','Última semana · 14 partidas analizadas'],
+      ['▼','warn','Caes a <b>41%</b> winrate cuando juegas Akali contra Galio o Lissandra.','El motor sugiere swap a Vladimir como secundario.'],
+      ['●','good','Tu damage profile es <b>AP-heavy</b>. Tu top debería abrir matchups en <b>AD</b>.','Threat rule 12-AP-HEAVY']
+    ],
+    pool: [
+      ['▲','good','Solo dentro del pool tu winrate es <b>63%</b>. El motor confirma que estás dentro de tu zona.','132 partidas · últimos 30 días'],
+      ['●','good','Ahri en patch 26.8 mantiene ratio S+ en MID. <b>No cambies</b>.','Threat rule 7-LATE_GAME_CARRY'],
+      ['▼','warn','Akali contra picks AP-burst sigue en 41%. Plantea ban Galio en partidas competitivas.','Sugerido por el draft assistant']
+    ],
+    off: [
+      ['▼','warn','Off-pool sangra <b>-25 puntos</b> de winrate. Yasuo y Yone destacan negativamente.','54 partidas fuera del pool'],
+      ['●','warn','Esto NO afecta a tu KDA principal de NovaRift, pero sí tiende a bajar tu LP en ranked.','Recordatorio del coach'],
+      ['▲','good','Recomendación: ánclate al pool 7 días o promueve Yasuo a secundario para que cuente.','El motor te avisará cada 14 días']
+    ]
+  };
+
+  function setMode(mode){
+    const d = modeData[mode];
+    hubScope.textContent = d.label;
+    hubWr.textContent = d.wr;
+    hubWr.className = 'good' === d.wrCls ? 'good' : 'bad';
+    hubKda.textContent = d.kda;
+    hubGames.textContent = d.games;
+    radarPoly.setAttribute('points', d.poly);
+    // insights
+    insightsList.innerHTML = insights[mode].map(([icon, cls, html, sub]) => `
+      <div class="insight ${cls === 'warn' ? 'warn' : ''}">
+        <div class="icon">${icon}</div>
+        <div class="text">${html}<small>${sub}</small></div>
+      </div>
+    `).join('');
+    // matches: off-pool toggles last row
+    matchList.querySelectorAll('.match-row').forEach((r, i) => {
+      if (i === 3) r.style.display = mode === 'off' ? 'grid' : 'none';
+      else r.style.display = mode === 'off' ? 'none' : 'grid';
+    });
+  }
+  hubToggle.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    hubToggle.querySelectorAll('button').forEach(x => x.classList.remove('is-active'));
+    b.classList.add('is-active');
+    setMode(b.dataset.mode);
+  }));
+</script>
+</body>
+</html>

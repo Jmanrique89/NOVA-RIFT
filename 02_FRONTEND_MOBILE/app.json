@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "NOVA RIFT",
+    "slug": "nova-rift",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0f"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.novarift.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0f"
+      },
+      "package": "com.novarift.mobile",
+      "permissions": [
+        "INTERNET"
+      ]
+    },
+    "web": {
+      "backgroundColor": "#07070d"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "nova-rift-tfg-2026"
+      }
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}

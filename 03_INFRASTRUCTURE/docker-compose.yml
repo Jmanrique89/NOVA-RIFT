@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  oracledb:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: novarift-oracle
+    environment:
+      - ORACLE_PASSWORD=novarift
+      - APP_USER=novarift
+      # gvenzl/oracle-xe exige APP_USER_PASSWORD (no APP_PASSWORD): con el nombre
+      # antiguo el contenedor abortaba el init con "APP_USER specified without
+      # APP_USER_PASSWORD" (smoke H33, 07-06).
+      - APP_USER_PASSWORD=novarift
+    ports:
+      - "1521:1521"
+    volumes:
+      - oradata:/opt/oracle/oradata
+
+volumes:
+  oradata:

@@ -1,0 +1,456 @@
+openapi: 3.0.3
+info:
+  title: NOVA RIFT API (Dual Mode)
+  description: |
+    API interna para la App móvil Nova Rift. Incluye los módulos:
+    - **Live-Rift**: Análisis táctico en tiempo real durante partida.
+    - **Elo Forge**: Entrenador de progreso basado en historial de métricas.
+    - **Identity**: Verificación de identidad de invocador vía Riot API.
+    
+    ## Modelo de Datos
+    Las respuestas 200 usan schemas flexibles (type: object) por compatibilidad
+    con el backend dinámico. Los schemas documentales en components/schemas
+    detallan los campos reales de cada respuesta.
+  version: 3.0.0
+servers:
+  - url: http://localhost:8080
+    description: Servidor de Desarrollo (Local)
+
+paths:
+  /api/v1/live/start:
+    post:
+      summary: Inicia el módulo Live-Rift
+      operationId: startLiveSession
+      description: Envía datos de la partida actual y recibe tácticas y build optimizada.
+      tags: [Live-Rift]
+      requestBody:
+        description: Datos de sesión live (nombre de invocador + hash de imagen)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                summonerName:
+                  type: string
+                imageHash:
+                  type: string
+      responses:
+        '200':
+          description: |
+            OK - Estrategia y rutas generadas.
+            Campos legacy: summonerName, enemyDraftPattern (JSON string), recommendedFirstBuy (JSON string), status, startedAt, recommendationVersion, recommendationScore, recommendationBreakdown (JSON string), recommendationConfidence.
+            Campos nuevos del Motor de Recomendación (Hito Profesor 2026-04-25):
+              - recommendationTotalScore (number): puntuación total ponderada del item top.
+              - recommendationConfidence (number 0-1): nivel de confianza global.
+              - recommendationReasons (array de strings): motivos legibles por los que se eligió la build.
+              - recommendationItems (array): listado de items rankeados con score/confianza/justificación.
+              - threatAssessment (object): perfil de amenaza enemigo calculado por el motor.
+          content:
+            application/json:
+              schema:
+                # Mantener el schema flexible (type: object) para que el generador
+                # produzca ResponseEntity<Object> y no rompa el adapter manual.
+                # La estructura real está documentada en LiveSessionResponseDoc
+                # (más abajo en components/schemas) como referencia para el frontend.
+                type: object
+        '400':
+          description: Payload inválido o incompleto
+        '405':
+          description: Método no permitido (usar POST)
+
+  /api/v1/live/client/items:
+    get:
+      summary: Obtiene ítems actuales del jugador (REAL=Live Client API, MOCK=simulado)
+      operationId: getLiveClientItems
+      description: |
+        En modo REAL: proxy a http://127.0.0.1:2999/liveclientdata/activeplayer/items (Riot Live Game Client).
+        En modo MOCK: devuelve una lista simulada de ítems comprados progresivamente.
+        Ideal para polling cada 10s desde la app móvil durante una partida.
+      tags: [Live-Rift]
+      responses:
+        '200':
+          description: |
+            Lista de ítems actualmente en el inventario del jugador.
+            Estructura: { mode: 'MOCK'|'REAL', items: [{ itemId, displayName, slot }] }.
+            Schema flexible (type: object) para que el generador produzca ResponseEntity<Object>.
+          content:
+            application/json:
+              schema:
+                type: object
+        '503':
+          description: Live Client API no disponible (el jugador no está en partida o el cliente no está abierto)
+
+  /api/v1/live/purchase:
+    post:
+      summary: Registra compra manual de ítem (modo MOCK)
+      operationId: registerItemPurchase
+      description: |
+        Permite al usuario marcar manualmente un ítem como comprado durante una partida.
+        Usado en modo MOCK para simular el tracking sin necesitar el cliente de LoL abierto.
+      tags: [Live-Rift]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # Body flexible (type: object plano) → el adapter usa Map<String,Object>
+              type: object
+      responses:
+        '200':
+          description: |
+            Ítem registrado correctamente.
+            Estructura: { registered: true, totalPurchased: int, item: {...} }
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/forge/analytics/{riotId}:
+    get:
+      summary: Análisis de Rendimiento y Retos Personalizados
+      operationId: getForgeAnalytics
+      description: |
+        Obtiene las métricas históricas del jugador y genera retos dinámicos
+        priorizados por la brecha relativa entre valor actual y objetivo.
+        Dos jugadores con perfiles distintos siempre reciben retos diferentes.
+        
+        Campos de respuesta: riotId, csPerMin, targetCsMin, visionScore, kda,
+        killParticipation, forgesCompleted, csComparison, challenges[], forgingMissions{}
+      tags: [EloForge]
+      parameters:
+        - name: riotId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Formato: NombreInvocador-TAG (guion en lugar de #)"
+      responses:
+        '200':
+          description: OK - Métricas y retos generados
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Riot ID no encontrado
+
+  /api/v1/forge/complete/{riotId}:
+    post:
+      summary: Registra una forja completada con métricas post-partida
+      operationId: completeForge
+      description: |
+        Persiste las métricas de la partida jugada, incrementa el contador de forjas,
+        y devuelve el estado actualizado del progreso del jugador.
+        
+        Body esperado: { csPerMin, visionScore, kda, killParticipation }
+        Respuesta: { riotId, forgesCompleted, csPerMin, visionScore, kda, killParticipation, lastUpdated, message }
+      tags: [EloForge]
+      parameters:
+        - name: riotId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Formato: NombreInvocador-TAG"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                csPerMin:
+                  type: number
+                  format: double
+                visionScore:
+                  type: number
+                  format: double
+                kda:
+                  type: number
+                  format: double
+                killParticipation:
+                  type: number
+                  format: double
+      responses:
+        '200':
+          description: OK - Progreso actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/identity/summoner/{riotId}:
+    get:
+      operationId: getSummonerByRiotId
+      summary: Obtiene datos del invocador por RiotID (path)
+      description: |
+        Respuesta 200: { puuid, gameName, tagLine, region, summonerLevel, profileIconId }
+        Errores: { error: "mensaje descriptivo" }
+      tags: [Identity]
+      parameters:
+        - name: riotId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "Formato: NombreInvocador-TAG (guion en lugar de #)"
+      responses:
+        '200':
+          description: OK - Datos del invocador
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Formato de RiotID inválido (falta separador -)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Invocador no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Riot API rate limit excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: API Key de Riot inválida o caducada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/identity/summoner:
+    get:
+      operationId: getSummonerByRiotIdQuery
+      summary: Obtiene datos del invocador por RiotID (query param)
+      description: Variante con query parameter, usada por el frontend para evitar problemas de encoding en el path.
+      tags: [Identity]
+      parameters:
+        - name: riotId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: "Formato: NombreInvocador-TAG (guion en lugar de #)"
+      responses:
+        '200':
+          description: OK - Datos del invocador
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Formato de RiotID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Invocador no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensaje de error descriptivo
+
+    # =============================================
+    # SCHEMAS DOCUMENTALES (no usados en generación de código,
+    # solo como referencia de contrato para el frontend)
+    # =============================================
+    
+    LiveSessionResponseDoc:
+      description: "Referencia documental — campos reales de la respuesta Live"
+      type: object
+      properties:
+        summonerName:
+          type: string
+        enemyDraftPattern:
+          type: string
+          description: JSON serializado con el análisis del draft enemigo
+        recommendedFirstBuy:
+          type: string
+          description: JSON serializado con la build recomendada
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED]
+        startedAt:
+          type: string
+          format: date-time
+        recommendationVersion:
+          type: string
+          description: Versión de la política de recomendación aplicada
+        recommendationScore:
+          type: number
+          format: double
+          description: (Legacy) puntuación del item top — equivalente a recommendationTotalScore
+        recommendationTotalScore:
+          type: number
+          format: double
+          description: Puntuación total ponderada del item top (0-100)
+        recommendationConfidence:
+          type: number
+          format: double
+          description: Nivel de confianza global (0.0-1.0)
+        recommendationBreakdown:
+          type: string
+          description: JSON serializado con desglose completo de factores
+        recommendationReasons:
+          type: array
+          description: Motivos legibles por los que el motor eligió esta build
+          items:
+            type: string
+        recommendationItems:
+          type: array
+          description: Items rankeados por el motor de scoring
+          items:
+            $ref: '#/components/schemas/ScoredItemDoc'
+        threatAssessment:
+          $ref: '#/components/schemas/ThreatAssessmentDoc'
+
+    ScoredItemDoc:
+      description: "Item rankeado por el motor de recomendación"
+      type: object
+      properties:
+        itemId:
+          type: string
+        itemName:
+          type: string
+        scoreTotal:
+          type: number
+          format: double
+        confidence:
+          type: number
+          format: double
+        threatMitigation:
+          type: number
+          format: double
+        matchupValue:
+          type: number
+          format: double
+        timingFit:
+          type: number
+          format: double
+        synergyScore:
+          type: number
+          format: double
+        explanation:
+          type: string
+
+    ThreatAssessmentDoc:
+      description: "Evaluación de amenaza del equipo enemigo"
+      type: object
+      properties:
+        threatScore:
+          type: integer
+          description: Puntuación de amenaza 0-100
+        damageProfile:
+          type: string
+          enum: [AD, AP, MIXED]
+        ccTags:
+          type: array
+          items:
+            type: string
+        triggeredRules:
+          type: integer
+          description: Número de reglas de la KB activadas
+
+    ForgeAnalyticsResponseDoc:
+      description: "Referencia documental — campos reales de la respuesta Forge Analytics"
+      type: object
+      properties:
+        riotId:
+          type: string
+        csPerMin:
+          type: number
+        targetCsMin:
+          type: number
+        visionScore:
+          type: number
+        kda:
+          type: number
+        killParticipation:
+          type: number
+        forgesCompleted:
+          type: integer
+        csComparison:
+          type: string
+        challenges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChallengeDoc'
+        forgingMissions:
+          type: object
+          additionalProperties:
+            type: string
+
+    ChallengeDoc:
+      description: "Reto personalizado generado por el motor de Elo Forge"
+      type: object
+      properties:
+        icon:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+        tip:
+          type: string
+
+    ForgeCompleteResponseDoc:
+      description: "Referencia documental — respuesta tras completar una forja"
+      type: object
+      properties:
+        riotId:
+          type: string
+        forgesCompleted:
+          type: integer
+        csPerMin:
+          type: number
+        visionScore:
+          type: number
+        kda:
+          type: number
+        killParticipation:
+          type: number
+        lastUpdated:
+          type: string
+          format: date-time
+        message:
+          type: string
+
+    SummonerResponseDoc:
+      description: "Referencia documental — datos del invocador"
+      type: object
+      properties:
+        puuid:
+          type: string
+        gameName:
+          type: string
+        tagLine:
+          type: string
+        region:
+          type: string
+        summonerLevel:
+          type: integer
+        profileIconId:
+          type: integer

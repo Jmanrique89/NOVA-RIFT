@@ -1,0 +1,58 @@
+# ============================================================================
+# NOVA RIFT — .gitignore de entrega (TFG 2026)
+# ----------------------------------------------------------------------------
+# WHITELIST: por defecto se ignora TODO lo que hay en la raiz del workspace.
+# Solo se versiona el codigo esencial para ejecutar el proyecto:
+#   - 01_BACKEND_JAVA     (Spring Boot / Maven)
+#   - 02_FRONTEND_MOBILE  (Expo / React Native)
+#   - 03_INFRASTRUCTURE   (docker-compose, data dragon, openapi)
+#
+# Queda FUERA automaticamente: documentacion academica, procesos de IA,
+# COORDINACION_AGENTES, agents/, _BACKUP_IA_NO_ENTREGAR, entregas, backups, etc.
+# ============================================================================
+
+# ── 1) Ignorar TODO en la raiz por defecto ─────────────────────────────────
+/*
+
+# ── 2) Incluir SOLO lo esencial ────────────────────────────────────────────
+!/.gitignore
+!/README.md
+!/01_BACKEND_JAVA/
+!/02_FRONTEND_MOBILE/
+!/03_INFRASTRUCTURE/
+
+# ── 3) Backend: fuera artefactos de build y datos locales ──────────────────
+01_BACKEND_JAVA/target/
+01_BACKEND_JAVA/data/
+01_BACKEND_JAVA/logs/
+
+# ── 4) Frontend: fuera dependencias y cache ────────────────────────────────
+02_FRONTEND_MOBILE/node_modules/
+02_FRONTEND_MOBILE/.expo/
+02_FRONTEND_MOBILE/.expo-shared/
+02_FRONTEND_MOBILE/dist/
+02_FRONTEND_MOBILE/web-build/
+
+# ── 5) Infraestructura: NUNCA subir la clave real de Riot ──────────────────
+03_INFRASTRUCTURE/apiKeyRiot.md
+**/apiKeyRiot.md
+
+# ── 6) Secretos / entorno (defensa en profundidad) ─────────────────────────
+.env
+.env.*
+*.pem
+*.keystore
+*.jks
+
+# ── 7) Bases de datos locales y logs ───────────────────────────────────────
+*.mv.db
+*.lock.db
+*.trace.db
+*.log
+
+# ── 8) Sistema operativo / IDE ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
