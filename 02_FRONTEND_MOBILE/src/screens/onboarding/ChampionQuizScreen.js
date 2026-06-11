@@ -1,5 +1,5 @@
 // ============================================================================
-// ChampionQuizScreen — Paso 4a/4 (BRAIN.md)
+// ChampionQuizScreen — Paso 4a/4 del onboarding
 // ----------------------------------------------------------------------------
 // 5 preguntas para filtrar el catálogo. Las respuestas se pasan al
 // OnboardingContext como quizAnswers y luego a recommendChampions().

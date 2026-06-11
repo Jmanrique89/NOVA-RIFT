@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Antes vivía inline en `src/screens/ProfileScreen.js`. Movido aquí porque:
 // El motor `src/utils/trophies.js` lo consume sin tocar la UI.
-// Otros agentes / pantallas pueden necesitar listar trofeos (ej. progress
+// Otras pantallas pueden necesitar listar trofeos (ej. progress
 // embebido en HubScreen o coaching messages que referencien por id).
 // El catálogo es contenido de producto, no de presentación.
 //

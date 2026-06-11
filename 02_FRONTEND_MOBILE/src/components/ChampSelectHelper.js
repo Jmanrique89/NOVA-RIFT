@@ -89,8 +89,8 @@ const ROLE_TABS = [
 ];
 
 // P0-3 — Resolución del pool PROPIO del usuario. Replica EXACTAMENTE la
-// prioridad de LiveScreen.resolvePlayerPool (que no podemos importar: vive en un
-// archivo que edita otro agente, así que se copia la lógica aquí):
+// prioridad de LiveScreen.resolvePlayerPool (que no se importa para evitar
+// dependencias cruzadas entre pantallas, así que se replica la lógica aquí):
 //   1º  Pool del onboarding (user.champions, en cualquiera de sus formatos).
 //   2º  Pool efectivo derivado de las PARTIDAS REALES del jugador, que el Hub
 //       publica en la caché de sesión (readEffectivePool).

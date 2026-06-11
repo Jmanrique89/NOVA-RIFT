@@ -17,9 +17,7 @@
 //
 // TODO: cuando el backend exponga `/api/v1/champions/catalog` con metadatos
 // (rol, splashUri firmada, etc.), reemplazar las URLs hardcodeadas por
-// llamada a ese endpoint. Endpoint propuesto en
-// `COORDINACION_AGENTES/PROPUESTA_ENDPOINT_CHAMPIONS_CATALOG.md`
-// (pendiente de redactar antes de H4).
+// llamada a ese endpoint.
 // ============================================================================
 
 // Mapa name → role para resolver el placeholder sin pedir contexto al

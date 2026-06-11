@@ -7,8 +7,6 @@
 #   - 02_FRONTEND_MOBILE  (Expo / React Native)
 #   - 03_INFRASTRUCTURE   (docker-compose, data dragon, openapi)
 #
-# Queda FUERA automaticamente: documentacion academica, procesos de IA,
-# COORDINACION_AGENTES, agents/, _BACKUP_IA_NO_ENTREGAR, entregas, backups, etc.
 # ============================================================================
 
 # ── 1) Ignorar TODO en la raiz por defecto ─────────────────────────────────

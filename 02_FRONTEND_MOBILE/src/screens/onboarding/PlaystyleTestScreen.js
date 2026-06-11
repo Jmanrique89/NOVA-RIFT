@@ -1,5 +1,5 @@
 // ============================================================================
-// PlaystyleTestScreen — Paso 3/4 (BRAIN.md preguntas exactas)
+// PlaystyleTestScreen — Paso 3/4 del onboarding
 // ----------------------------------------------------------------------------
 // 5 escenarios reales de partida con 4 respuestas (A/B/C/D).
 // Mapeo: A → AGRESIVO, B → TÁCTICO, C → SUPPORTIVE, D → DOMINANTE.

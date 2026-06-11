@@ -143,7 +143,7 @@ export const CHAMPIONS = [
   { id: 'TahmKench',   displayName: 'Tahm Kench',   role: 'SUPPORT', playstyles: ['SUPPORTIVE', 'DOMINANTE'], difficulty: 4, ranged: false, damageType: 'AP'   , secondaryRoles: ['TOP'] },
 ];
 
-// ─── Algoritmo de recomendación (BRAIN.md sección 4/4) ─────────────────────
+// ─── Algoritmo de recomendación ───────────────────────────────────────────
 const ADJACENT = {
   AGRESIVO:   'DOMINANTE',
   DOMINANTE:  'AGRESIVO',

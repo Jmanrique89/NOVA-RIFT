@@ -1,6 +1,6 @@
 import { normalizeChampionName } from './championImage';
 
-// Patch alineado con BRAIN.md / LoL-Research (16.8.1). Antes 14.24.1.
+// Versión de Data Dragon alineada con el patch actual (16.8.1). Antes 14.24.1.
 const DD_VERSION = '16.8.1';
 const DD_BASE = `https://ddragon.leagueoflegends.com/cdn/${DD_VERSION}`;
 
