@@ -7,6 +7,8 @@
 #   - 02_FRONTEND_MOBILE  (Expo / React Native)
 #   - 03_INFRASTRUCTURE   (docker-compose, data dragon, openapi)
 #
+# Queda FUERA automaticamente todo lo que no sea codigo de la aplicacion:
+# documentacion, notas internas, scripts de arranque, entregas y backups.
 # ============================================================================
 
 # ── 1) Ignorar TODO en la raiz por defecto ─────────────────────────────────
